@@ -50,7 +50,36 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           details.participants.forEach((email) => {
             const li = document.createElement("li");
-            li.textContent = email;
+            // Container for email and delete icon
+            const span = document.createElement("span");
+            span.textContent = email;
+            span.className = "participant-email";
+
+            // Delete icon (using Unicode for simplicity)
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "delete-participant-btn";
+            deleteBtn.title = "Remove participant";
+            deleteBtn.innerHTML = "\u2716"; // Unicode heavy multiplication X
+            deleteBtn.onclick = async (e) => {
+              e.stopPropagation();
+              // Call API to unregister participant
+              try {
+                const response = await fetch(`/activities/${encodeURIComponent(name)}/unregister?email=${encodeURIComponent(email)}`, {
+                  method: "POST",
+                });
+                if (response.ok) {
+                  // Refresh activities list
+                  fetchActivities();
+                } else {
+                  alert("Failed to remove participant.");
+                }
+              } catch (err) {
+                alert("Error removing participant.");
+              }
+            };
+
+            li.appendChild(span);
+            li.appendChild(deleteBtn);
             ul.appendChild(li);
           });
         }
@@ -98,6 +127,8 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        // Refresh activities list so new participant appears
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
